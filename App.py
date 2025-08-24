@@ -63,7 +63,6 @@ def fetch_nobetci_eczaneler(sehir, ilce):
                 eczaneler.append({"Eczane": name, "Adres": address, "Telefon": phone})
         return pd.DataFrame(eczaneler)
     except Exception as e:
-        st.error(f"Veri çekilemedi: {e}")
         return pd.DataFrame()
 
 # -----------------------------
@@ -77,13 +76,3 @@ df = fetch_nobetci_eczaneler(selected_sehir, selected_ilce)
 today_str = datetime.now().strftime("%d %B %Y")
 st.subheader(f"{today_str} Tarihli Nöbetçi Eczaneler – {selected_ilce} / {selected_sehir}")
 
-if df.empty:
-    st.info(f"Bugün {selected_ilce} ilçesinde nöbetçi eczane bulunamadı.")
-else:
-    st.dataframe(df, use_container_width=True)
-    st.download_button(
-        "CSV olarak indir",
-        df.to_csv(index=False).encode("utf-8"),
-        file_name=f"{selected_ilce.lower()}_nobetci_eczaneler.csv",
-        mime="text/csv"
-    )
