@@ -33,7 +33,7 @@ selected_ilce = st.selectbox(
 # -----------------------------
 # URL oluştur ve buton ile aç
 # -----------------------------
-base_url = f"https://www.eczaneler.gen.tr/nobetci-{selected_sehir.lower()}-{selected_ilce.lower()}"
+base_url = f"https://www.eczaneler.gen.tr/eczaneler/{selected_sehir.lower()}-{selected_ilce.lower()}"
 st.markdown(f"Seçilen URL: [{base_url}]({base_url})")
 
 if st.button("Yeni Sekmede Aç"):
@@ -41,47 +41,44 @@ if st.button("Yeni Sekmede Aç"):
     components.html(f"<script>{js}</script>")
 
 # -----------------------------
-# Web Scraping (hiç re yok)
+# Web Scraping (hiç BeautifulSoup ve re yok)
 # -----------------------------
 @st.cache_data(show_spinner=False)
 def fetch_nobetci_eczaneler(sehir, ilce):
-    url = f"https://www.eczaneler.gen.tr/nobetci-{sehir.lower()}-{ilce.lower()}"
+    url = f"https://www.eczaneler.gen.tr/eczaneler/{sehir.lower()}-{ilce.lower()}"
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         html = response.text
 
         eczaneler = []
-        # tüm eczane bloklarını parçala
-        blocks = html.split('<div class="eczane-content">')[1:]
-
-        for block in blocks:
-            # Eczane adı
-            name = ""
-            if "<h3" in block:
-                start = block.find("<h3")
-                start = block.find(">", start) + 1
-                end = block.find("</h3>", start)
-                name = block[start:end].strip()
+        # "Image: Eczane adı" ifadesine göre parçala
+        parts = html.split("Image: Eczane adı")
+        for part in parts[1:]:
+            # Eczane Adı
+            lines = part.splitlines()
+            name = lines[1].strip() if len(lines) > 1 else ""
 
             # Adres
             address = ""
-            if '<div class="address' in block:
-                start = block.find('<div class="address')
-                start = block.find(">", start) + 1
-                end = block.find("</div>", start)
-                address = block[start:end].strip()
+            if "Image: Eczane adresi" in part:
+                addr_part = part.split("Image: Eczane adresi")
+                addr_lines = addr_part[1].splitlines()
+                address = addr_lines[1].strip() if len(addr_lines) > 1 else ""
 
             # Telefon
             phone = ""
-            if '<div class="phone' in block:
-                start = block.find('<div class="phone')
-                start = block.find(">", start) + 1
-                end = block.find("</div>", start)
-                phone = block[start:end].strip()
+            if "Image: Eczane telefonu" in part:
+                phone_part = part.split("Image: Eczane telefonu")
+                phone_lines = phone_part[1].splitlines()
+                phone = phone_lines[1].strip() if len(phone_lines) > 1 else ""
 
             if name:
-                eczaneler.append({"Eczane": name, "Adres": address, "Telefon": phone})
+                eczaneler.append({
+                    "Eczane": name,
+                    "Adres": address,
+                    "Telefon": phone
+                })
 
         return pd.DataFrame(eczaneler)
 
@@ -102,4 +99,4 @@ st.subheader(f"{today_str} Tarihli Nöbetçi Eczaneler – {selected_ilce.capita
 if not df.empty:
     st.dataframe(df, use_container_width=True)
 else:
-    st.warning("Bu ilçe için veri bulunamadı.")
+    st.warning("Bu ilçe için eczane verisi bulunamadı.")
