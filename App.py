@@ -19,10 +19,10 @@ sehirler = list(ilceler_by_il.keys())
 # -----------------------------
 # UI: Şehir ve İlçe Seçimi
 # -----------------------------
-selected_sehir = st.selectbox("Şehir seç", sehirler, index=sehirler.index("İzmir"))
+selected_sehir = st.selectbox("Şehir seç", sehirler, index=sehirler.index("izmir"))
 
 # Default ilçe seçimi, seçilen şehre göre
-default_ilce = "Güzelbahçe" if selected_sehir == "İzmir" else ilceler_by_il[selected_sehir][0]
+default_ilce = "Guzelbahce" if selected_sehir == "izmir" else ilceler_by_il[selected_sehir][0]
 
 selected_ilce = st.selectbox(
     "İlçe seç",
