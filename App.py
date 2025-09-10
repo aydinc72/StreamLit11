@@ -2,7 +2,6 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime
-from bs4 import BeautifulSoup
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="Türkiye Nöbetçi Eczaneler", layout="wide")
@@ -23,7 +22,6 @@ sehirler = list(ilceler_by_il.keys())
 # -----------------------------
 selected_sehir = st.selectbox("Şehir seç", sehirler, index=sehirler.index("izmir"))
 
-# Default ilçe seçimi, seçilen şehre göre
 default_ilce = "guzelbahce" if selected_sehir == "izmir" else ilceler_by_il[selected_sehir][0]
 
 selected_ilce = st.selectbox(
@@ -43,7 +41,7 @@ if st.button("Yeni Sekmede Aç"):
     components.html(f"<script>{js}</script>")
 
 # -----------------------------
-# Web Scraping ile veri çekme
+# Web Scraping (hiç re yok)
 # -----------------------------
 @st.cache_data(show_spinner=False)
 def fetch_nobetci_eczaneler(sehir, ilce):
@@ -51,22 +49,43 @@ def fetch_nobetci_eczaneler(sehir, ilce):
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        soup = BeautifulSoup(response.text, "html.parser")
+        html = response.text
 
         eczaneler = []
-        for eczane in soup.select("div.eczane-content"):
-            name_elem = eczane.select_one("h3")
-            address_elem = eczane.select_one("div.address")
-            phone_elem = eczane.select_one("div.phone")
+        # tüm eczane bloklarını parçala
+        blocks = html.split('<div class="eczane-content">')[1:]
 
-            if name_elem:
-                name = name_elem.get_text(strip=True)
-                address = address_elem.get_text(strip=True) if address_elem else ""
-                phone = phone_elem.get_text(strip=True) if phone_elem else ""
+        for block in blocks:
+            # Eczane adı
+            name = ""
+            if "<h3" in block:
+                start = block.find("<h3")
+                start = block.find(">", start) + 1
+                end = block.find("</h3>", start)
+                name = block[start:end].strip()
+
+            # Adres
+            address = ""
+            if '<div class="address' in block:
+                start = block.find('<div class="address')
+                start = block.find(">", start) + 1
+                end = block.find("</div>", start)
+                address = block[start:end].strip()
+
+            # Telefon
+            phone = ""
+            if '<div class="phone' in block:
+                start = block.find('<div class="phone')
+                start = block.find(">", start) + 1
+                end = block.find("</div>", start)
+                phone = block[start:end].strip()
+
+            if name:
                 eczaneler.append({"Eczane": name, "Adres": address, "Telefon": phone})
 
         return pd.DataFrame(eczaneler)
-    except Exception as e:
+
+    except Exception:
         return pd.DataFrame()
 
 # -----------------------------
