@@ -10,8 +10,8 @@ st.title("Türkiye Nöbetçi Eczaneler")
 # Şehir ve İlçe Listeleri
 # -----------------------------
 ilceler_by_il = {
-    "İzmir": ["Güzelbahçe"],
-    "İstanbul": ["Sarıyer"]
+    "izmir": ["guzelbahce"],
+    "istanbul": ["sariyer"]
 }
 
 sehirler = list(ilceler_by_il.keys())
