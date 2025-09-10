@@ -33,7 +33,7 @@ selected_ilce = st.selectbox(
 # -----------------------------
 # URL oluştur ve buton ile aç
 # -----------------------------
-base_url = f"https://www.turkiyenobetcieczane.com/nobetcieczane/{selected_sehir.lower()}/{selected_ilce.lower()}"
+base_url = f"https://www.eczaneler.gen.tr/nobetci-{selected_sehir.lower()}-{selected_ilce.lower()}"
 st.markdown(f"Seçilen URL: [{base_url}]({base_url})")
 
 import streamlit.components.v1 as components
